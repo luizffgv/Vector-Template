@@ -257,13 +257,6 @@ public:
     // Manipulation functions //
     //                        //
 
-    /*
-        PushBack and EmplaceBack could use std::enable_if instead of
-          static_assert, but the possible resulting compiler error messages are
-          much less comprehensible. Concepts might be useful, I can look into it
-          later.
-    */
-
     /**
      * @brief Inserts an element into the end of the Vector by copy, increasing
      *          the Vector's size by 1.
