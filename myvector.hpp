@@ -19,8 +19,6 @@
  * @file myvector.hpp
  * @author Luiz Fernando F. G. Valle
  * @brief Implements a vector template.
- * @version 1.0
- * @date 2021-01-10
  *
  * @copyright Copyright © 2021 Luiz Fernando F. G. Valle
  */
