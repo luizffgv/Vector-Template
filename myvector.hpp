@@ -23,30 +23,13 @@
  * @copyright Copyright © 2021 Luiz Fernando F. G. Valle
  */
 
-
-
-
-
 #ifndef MYVECTOR_HPP
 #define MYVECTOR_HPP
 
-
-
-
-
-#include <cmath> // for std::ceil
+#include <cmath>   // for std::ceil
 #include <cstring> // for std::memcpy
 #include <memory>
 #include <type_traits>
-
-
-
-
-
-
-
-
-
 
 /**
  * @brief Contains the entire Vector module
@@ -54,19 +37,11 @@
 namespace myvector
 {
 
-
-
-
-
 /**
  * @brief Concepts used by the Vector implementation
  */
 namespace concepts
 {
-
-
-
-
 
 /**
  * @brief Specifies that a type allows << operator with std::ostream as lhs
@@ -75,17 +50,11 @@ namespace concepts
  */
 template <typename T>
 concept OstreamPrintable = requires(T obj, std::ostream ostream)
-                           { ostream << obj; };
-
-
-
-
+{
+    ostream << obj;
+};
 
 } // namespace concepts
-
-
-
-
 
 /**
  * @brief A vector template
@@ -98,11 +67,6 @@ class Vector
     static_assert(std::is_same<T, typename Allocator::value_type>::value,
                   "Allocator must have T as its value_type");
 
-
-
-
-
-
     //                      //
     // Private type aliases //
     //                      //
@@ -112,10 +76,6 @@ class Vector
      */
     using alloctr_ = std::allocator_traits<Allocator>;
 
-
-
-
-
     //                                 //
     // Private static member variables //
     //                                 //
@@ -124,10 +84,6 @@ class Vector
      * @brief The allocator used by the Vector
      */
     static Allocator alloc_;
-
-
-
-
 
 public:
     //                     //
@@ -142,12 +98,12 @@ public:
     /**
      * @brief Defining reference as STL containers do
      */
-    using reference = T&;
+    using reference = T &;
 
     /**
      * @brief Defining const_reference as STL containers do
      */
-    using const_reference = const T&;
+    using const_reference = const T &;
 
     /**
      * @brief Defining allocator_type as STL containers do
@@ -157,12 +113,12 @@ public:
     /**
      * @brief Defining iterator as STL containers do
      */
-    using iterator = T*;
+    using iterator = T *;
 
     /**
      * @brief Defining const_iterator as STL containers do
      */
-    using const_iterator = const T*;
+    using const_iterator = const T *;
 
     /**
      * @brief Defining pointer as STL containers do
@@ -173,11 +129,7 @@ public:
      * @brief Defining const_pointer as STL containers do
      */
     using const_pointer =
-        typename std::allocator_traits<Allocator>::const_pointer;
-
-
-
-
+      typename std::allocator_traits<Allocator>::const_pointer;
 
     //                     //
     // RAII implementation //
@@ -194,8 +146,9 @@ public:
      * @param capacity Number of elements
      */
     explicit Vector(size_t capacity)
-        : elems_{alloctr_::allocate(alloc_, capacity)},
-          capacity_{capacity} {}
+        : elems_{alloctr_::allocate(alloc_, capacity)}, capacity_{capacity}
+    {
+    }
 
     /**
      * @brief Constructs a Vector with a list of elements
@@ -208,10 +161,9 @@ public:
           nelems_{list.size()}
     {
         static_assert(
-            std::is_copy_constructible_v<T> ||
-            std::is_trivially_copyable_v<T>,
-            "Vector initializer list constructor needs T to be copy"
-            " constructible or trivially copyable");
+          std::is_copy_constructible_v<T> || std::is_trivially_copyable_v<T>,
+          "Vector initializer list constructor needs T to be copy"
+          " constructible or trivially copyable");
 
         if constexpr (std::is_trivially_copyable_v<T>)
             std::memcpy(elems_, std::data(list), list.size() * sizeof(T));
@@ -225,8 +177,7 @@ public:
      *
      * @param vec Vector to be copied
      */
-    Vector(const Vector &vec) : nelems_{vec.nelems_},
-                                capacity_{vec.capacity_}
+    Vector(const Vector &vec) : nelems_{vec.nelems_}, capacity_{vec.capacity_}
     {
         elems_ = alloctr_::allocate(alloc_, capacity_);
 
@@ -242,9 +193,8 @@ public:
      *
      * @param vec Vector to be moved from
      */
-    Vector(Vector &&vec) : elems_{vec.elems_},
-                           nelems_{vec.nelems_},
-                           capacity_{vec.capacity_}
+    Vector(Vector &&vec)
+        : elems_{vec.elems_}, nelems_{vec.nelems_}, capacity_{vec.capacity_}
     {
         vec.elems_    = nullptr;
         vec.nelems_   = 0;
@@ -255,10 +205,6 @@ public:
      * @brief Destroys the Vector object
      */
     ~Vector() { DeallocateElems_(); }
-
-
-
-
 
     //                        //
     // Manipulation functions //
@@ -287,9 +233,7 @@ public:
     {
         GrowByFactorIfNeeded_();
 
-        alloctr_::construct(alloc_,
-                            elems_ + nelems_++,
-                            std::move(elem));
+        alloctr_::construct(alloc_, elems_ + nelems_++, std::move(elem));
     }
 
     /**
@@ -335,7 +279,7 @@ public:
      * @param args Constructor arguments
      */
     template <typename... Args>
-    void EmplaceBack(Args&&... args)
+    void EmplaceBack(Args &&...args)
     {
         PushBack(T(std::forward<Args>(args)...));
     }
@@ -366,10 +310,6 @@ public:
         nelems_ = 0;
     }
 
-
-
-
-
     //                                        //
     // Public capacity manipulation functions //
     //                                        //
@@ -382,17 +322,21 @@ public:
      *
      * @param sz Desired number of elements to be reserved in memory
      */
-    void Reserve(size_t sz) { if (sz > capacity_) ResizeCapacity_(sz); }
+    void Reserve(size_t sz)
+    {
+        if (sz > capacity_)
+            ResizeCapacity_(sz);
+    }
 
     /**
      * @brief Shrinks the capacity to fit exactly the number of elements in the
      *          Vector. Does nothing if capacity_ is already at the minimum.
      */
-    void ShrinkToFit() { if (capacity_ != nelems_) ResizeCapacity_(nelems_); }
-
-
-
-
+    void ShrinkToFit()
+    {
+        if (capacity_ != nelems_)
+            ResizeCapacity_(nelems_);
+    }
 
     //                       //
     // Information functions //
@@ -426,12 +370,7 @@ public:
      *
      * @return Vector's growth factor
      */
-    [[deprecated]]
-    float GrowthFactor() const { return GrowthFactor_; }
-
-
-
-
+    [[deprecated]] float GrowthFactor() const { return GrowthFactor_; }
 
     //                  //
     // Setter functions //
@@ -444,15 +383,11 @@ public:
      *
      * @param factor New growth factor
      */
-    [[deprecated]]
-    void SetGrowthFactor(float factor)
+    [[deprecated]] void SetGrowthFactor(float factor)
     {
-        if (factor > 1.f) GrowthFactor_ = factor;
+        if (factor > 1.f)
+            GrowthFactor_ = factor;
     }
-
-
-
-
 
     //                    //
     // Iterator functions //
@@ -486,10 +421,6 @@ public:
      */
     const_pointer cend() const { return elems_ + nelems_; }
 
-
-
-
-
     //           //
     // Operators //
     //           //
@@ -506,11 +437,11 @@ public:
      * @param rhs Vector to be copied from
      * @return Reference to left-hand Vector
      */
-    Vector<T> &operator=(const Vector<T> &rhs)
-        requires std::copy_constructible<T>
+    Vector<T> &
+    operator=(const Vector<T> &rhs) requires std::copy_constructible<T>
     {
         if (capacity_ >= rhs.Size())
-        {   // We can reuse the current Vector's memory
+        { // We can reuse the current Vector's memory
             size_t rhs_sz(rhs.Size());
             size_t min_sz{std::min(Size(), rhs_sz)};
             size_t elem_i{0};
@@ -526,9 +457,7 @@ public:
                     if constexpr (!std::is_trivially_destructible_v<T>)
                         // Need to destroy them first
                         alloctr_::destroy(alloc_, elems_ + elem_i);
-                    alloctr_::construct(alloc_,
-                                        elems_ + elem_i,
-                                        rhs[elem_i]);
+                    alloctr_::construct(alloc_, elems_ + elem_i, rhs[elem_i]);
                 }
 
                 ++elem_i;
@@ -541,7 +470,6 @@ public:
                 alloctr_::construct(alloc_, elems_ + elem_i, rhs[elem_i]);
                 ++elem_i;
             }
-
         }
         else // Current memory is too small, needs reallocation
         {
@@ -566,7 +494,7 @@ public:
     Vector<T> &operator=(Vector<T> &&rhs) requires std::move_constructible<T>
     {
         if (capacity_ >= rhs.Size())
-        {   // We can reuse the current Vector's memory
+        { // We can reuse the current Vector's memory
             size_t rhs_sz(rhs.Size());
             size_t min_sz{std::min(Size(), rhs_sz)};
             size_t elem_i{0};
@@ -582,9 +510,8 @@ public:
                     if constexpr (!std::is_trivially_destructible_v<T>)
                         // Need to destroy them first
                         alloctr_::destroy(alloc_, elems_ + elem_i);
-                    alloctr_::construct(alloc_,
-                                        elems_ + elem_i,
-                                        std::move(rhs[elem_i]));
+                    alloctr_::construct(
+                      alloc_, elems_ + elem_i, std::move(rhs[elem_i]));
                 }
 
                 ++elem_i;
@@ -594,12 +521,10 @@ public:
             //   so we just construct over them.
             while (elem_i < rhs_sz)
             {
-                alloctr_::construct(alloc_,
-                                    elems_ + elem_i,
-                                    std::move(rhs[elem_i]));
+                alloctr_::construct(
+                  alloc_, elems_ + elem_i, std::move(rhs[elem_i]));
                 ++elem_i;
             }
-
         }
         else // Current memory is too small, needs reallocation
         {
@@ -650,14 +575,14 @@ public:
           so why not.
     */
 
-   /**
-    * @brief Appends to the Vector.
-    *        Wraps around PushBack().
-    *
-    * @tparam RhsT Type of the argument
-    * @param elem Argument given to PushBack
-    * @return Reference to the Vector
-    */
+    /**
+     * @brief Appends to the Vector.
+     *        Wraps around PushBack().
+     *
+     * @tparam RhsT Type of the argument
+     * @param elem Argument given to PushBack
+     * @return Reference to the Vector
+     */
     template <typename RhsT>
     Vector<T> &operator+=(const RhsT &elem)
     {
@@ -696,8 +621,8 @@ private:
      * @tparam Ret Return type, shouldn't be manually specified.
      */
     template <typename Ret = void>
-    std::enable_if_t<!std::is_trivially_destructible<T>::value, Ret>
-    constexpr DestroyElems_()
+    std::enable_if_t<!std::is_trivially_destructible<T>::value,
+                     Ret> constexpr DestroyElems_()
     {
         for (auto *end_ptr{elems_ + nelems_}, *elem_ptr{elems_};
              elem_ptr < end_ptr;
@@ -722,10 +647,6 @@ private:
         alloctr_::deallocate(alloc_, elems_, capacity_);
         capacity_ = 0;
     }
-
-
-
-
 
     //                                 //
     // Capacity manipulation functions //
@@ -770,20 +691,19 @@ private:
      */
     void GrowByFactor_()
     {
-        ResizeCapacity_(capacity_
-                        ? std::ceil(capacity_ * double{GrowthFactor_})
-                        : 1);
+        ResizeCapacity_(capacity_ ? std::ceil(capacity_ * double{GrowthFactor_})
+                                  : 1);
     }
 
     /**
      * @brief Grows the Vector's capacity if full.
      *        Wraps around GrowByFactor_.
      */
-    void GrowByFactorIfNeeded_() { if (IsFullCapacity_()) GrowByFactor_(); }
-
-
-
-
+    void GrowByFactorIfNeeded_()
+    {
+        if (IsFullCapacity_())
+            GrowByFactor_();
+    }
 
     //                               //
     // Private information functions //
@@ -796,10 +716,6 @@ private:
      * @return false Vector is not using all its capacity
      */
     bool IsFullCapacity_() const { return nelems_ >= capacity_; }
-
-
-
-
 
     //                          //
     // Private member variables //
@@ -835,20 +751,12 @@ private:
     float GrowthFactor_{1.5}; // Or, more precisely, 1.61803 (phi)
 };
 
-
-
-
-
 //                               //
 // Static members initialization //
 //                               //
 
 template <typename T, typename Allocator>
 Allocator Vector<T, Allocator>::alloc_{};
-
-
-
-
 
 //                          //
 // Other function overloads //
@@ -876,8 +784,8 @@ std::ostream &operator<<(std::ostream &lhs, Vector<T, Allocator> &rhs)
     {
         lhs << '[';
 
-
-        if (rhs.Size()) lhs << rhs[0];
+        if (rhs.Size())
+            lhs << rhs[0];
 
         for (size_t elem_i{1}; elem_i < rhs.Size(); ++elem_i)
             lhs << ", " << rhs[elem_i];
@@ -888,14 +796,6 @@ std::ostream &operator<<(std::ostream &lhs, Vector<T, Allocator> &rhs)
     return lhs;
 }
 
-
-
-
-
 } // namespace myvector
-
-
-
-
 
 #endif // #ifndef MYVECTOR_HPP
