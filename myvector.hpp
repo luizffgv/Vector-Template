@@ -37,7 +37,9 @@
 
 
 #include <cmath> // for std::ceil
+#include <cstring> // for std::memcpy
 #include <memory>
+#include <type_traits>
 
 
 
@@ -207,11 +209,15 @@ public:
           capacity_{list.size()},
           nelems_{list.size()}
     {
-        static_assert(std::is_copy_constructible_v<T>,
-                      "Vector initializer list constructor needs T to be\n"
-                      "copy constructible");
+        static_assert(
+            std::is_copy_constructible_v<T> ||
+            std::is_trivially_copyable_v<T>,
+            "Vector initializer list constructor needs T to be copy"
+            " constructible or trivially copyable");
 
-        if constexpr (std::is_copy_constructible_v<T>)
+        if constexpr (std::is_trivially_copyable_v<T>)
+            std::memcpy(elems_, std::data(list), list.size() * sizeof(T));
+        else
             for (auto dest{elems_}; const T &elem : list)
                 alloctr_::construct(alloc_, dest++, elem);
     }
@@ -226,8 +232,11 @@ public:
     {
         elems_ = alloctr_::allocate(alloc_, capacity_);
 
-        for (auto dest{elems_}; auto &elem : vec)
-            alloctr_::construct(alloc_, dest++, elem);
+        if constexpr (std::is_trivially_copyable_v<T>)
+            std::memcpy(elems_, vec.elems_, nelems_ * sizeof(T));
+        else
+            for (auto dest{elems_}; auto &elem : vec)
+                alloctr_::construct(alloc_, dest++, elem);
     }
 
     /**
