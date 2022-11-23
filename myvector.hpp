@@ -31,15 +31,11 @@
 #include <memory>
 #include <type_traits>
 
-/**
- * @brief Contains the entire Vector module
- */
+/// Contains the entire Vector module
 namespace myvector
 {
 
-/**
- * @brief Concepts used by the Vector implementation
- */
+/// Concepts used by the Vector implementation
 namespace concepts
 {
 
@@ -69,10 +65,7 @@ struct _VectorBase
     Allocator alloc_;
 };
 
-/**
- * @brief _VectorBase specialization that uses a static allocator
- *
- */
+/// _VectorBase specialization that uses a static allocator
 template <typename T>
 struct _VectorBase<T, std::allocator<T>>
 {
@@ -96,9 +89,7 @@ class Vector : _VectorBase<T, Allocator>
     // Private type aliases //
     //                      //
 
-    /**
-     * @brief Alias for std::alocator_traits of the chosen allocator type
-     */
+    /// Alias for std::alocator_traits of the chosen allocator type
     using alloctr_ = std::allocator_traits<Allocator>;
 
     //                                 //
@@ -110,44 +101,28 @@ public:
     // Public type aliases //
     //                     //
 
-    /**
-     * @brief Defining value_type as STL containers do
-     */
+    /// Defining value_type as STL containers do
     using value_type = T;
 
-    /**
-     * @brief Defining reference as STL containers do
-     */
+    /// Defining reference as STL containers do
     using reference = T &;
 
-    /**
-     * @brief Defining const_reference as STL containers do
-     */
+    /// Defining const_reference as STL containers do
     using const_reference = T const &;
 
-    /**
-     * @brief Defining allocator_type as STL containers do
-     */
+    /// Defining allocator_type as STL containers do
     using allocator_type = Allocator;
 
-    /**
-     * @brief Defining iterator as STL containers do
-     */
+    /// Defining iterator as STL containers do
     using iterator = T *;
 
-    /**
-     * @brief Defining const_iterator as STL containers do
-     */
+    /// Defining const_iterator as STL containers do
     using const_iterator = T const *;
 
-    /**
-     * @brief Defining pointer as STL containers do
-     */
+    /// Defining pointer as STL containers do
     using pointer = typename std::allocator_traits<Allocator>::pointer;
 
-    /**
-     * @brief Defining const_pointer as STL containers do
-     */
+    /// Defining const_pointer as STL containers do
     using const_pointer =
       typename std::allocator_traits<Allocator>::const_pointer;
 
@@ -155,9 +130,7 @@ public:
     // RAII implementation //
     //                     //
 
-    /**
-     * @brief Constructs an empty Vector
-     */
+    /// Constructs an empty Vector
     constexpr Vector() = default;
 
     /**
@@ -223,9 +196,7 @@ public:
         vec.elems_    = nullptr;
     }
 
-    /**
-     * @brief Destroys the Vector object
-     */
+    /// Destroys the Vector object
     constexpr ~Vector() { DeallocateElems_(); }
 
     //                        //
@@ -750,19 +721,13 @@ private:
     // Private member variables //
     //                          //
 
-    /**
-     * @brief Number of elements in the vector
-     */
+    /// Number of elements in the vector
     size_t nelems_{0};
 
-    /**
-     * @brief Number of elements allocated or preallocated in the vector
-     */
+    /// Number of elements allocated or preallocated in the vector
     size_t capacity_{0};
 
-    /**
-     * @brief Pointer to the array of elements
-     */
+    /// Pointer to the array of elements
     pointer elems_{nullptr};
 
     /*
