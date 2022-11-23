@@ -56,13 +56,38 @@ concept OstreamPrintable = requires(T obj, std::ostream ostream)
 
 } // namespace concepts
 
+/// @cond INTERNAL
+
+/**
+ * @brief Vector base template
+ *
+ * Uses an allocator per instance unless the Allocator is std::allocator<T>
+ */
+template <typename T, typename Allocator>
+struct _VectorBase
+{
+    Allocator alloc_;
+};
+
+/**
+ * @brief _VectorBase specialization that uses a static allocator
+ *
+ */
+template <typename T>
+struct _VectorBase<T, std::allocator<T>>
+{
+    static inline std::allocator<T> alloc_;
+};
+
+/// @endcond INTERNAL
+
 /**
  * @brief A vector template
  *
  * @tparam T Stored type
  */
 template <typename T, typename Allocator = std::allocator<T>>
-class Vector
+class Vector : _VectorBase<T, Allocator>
 {
     static_assert(std::is_same<T, typename Allocator::value_type>::value,
                   "Allocator must have T as its value_type");
@@ -79,11 +104,6 @@ class Vector
     //                                 //
     // Private static member variables //
     //                                 //
-
-    /**
-     * @brief The allocator used by the Vector
-     */
-    static Allocator alloc_;
 
 public:
     //                     //
@@ -146,7 +166,8 @@ public:
      * @param capacity Number of elements
      */
     explicit constexpr Vector(size_t capacity)
-        : capacity_{capacity}, elems_{alloctr_::allocate(alloc_, capacity_)}
+        : capacity_{capacity},
+          elems_{alloctr_::allocate(this->alloc_, capacity_)}
     {
     }
 
@@ -158,7 +179,7 @@ public:
     constexpr Vector(std::initializer_list<T> list)
         : capacity_{list.size()},
           nelems_{list.size()},
-          elems_{alloctr_::allocate(alloc_, capacity_)}
+          elems_{alloctr_::allocate(this->alloc_, capacity_)}
     {
         static_assert(
           std::is_copy_constructible_v<T> || std::is_trivially_copyable_v<T>,
@@ -169,7 +190,7 @@ public:
             std::copy(list.begin(), list.end(), elems_);
         else
             for (auto dest{elems_}; const T &elem : list)
-                alloctr_::construct(alloc_, dest++, elem);
+                alloctr_::construct(this->alloc_, dest++, elem);
     }
 
     /**
@@ -180,13 +201,13 @@ public:
     constexpr Vector(const Vector &vec)
         : nelems_{vec.nelems_},
           capacity_{vec.nelems_},
-          elems_{alloctr_::allocate(alloc_, nelems_)}
+          elems_{alloctr_::allocate(this->alloc_, nelems_)}
     {
         if constexpr (std::is_trivially_copyable_v<T>)
             std::copy(vec.begin(), vec.end(), elems_);
         else
             for (auto dest{elems_}; auto &elem : vec)
-                alloctr_::construct(alloc_, dest++, elem);
+                alloctr_::construct(this->alloc_, dest++, elem);
     }
 
     /**
@@ -222,7 +243,7 @@ public:
     {
         GrowByFactorIfNeeded_();
 
-        alloctr_::construct(alloc_, elems_ + nelems_++, elem);
+        alloctr_::construct(this->alloc_, elems_ + nelems_++, elem);
     }
 
     /**
@@ -235,7 +256,7 @@ public:
     {
         GrowByFactorIfNeeded_();
 
-        alloctr_::construct(alloc_, elems_ + nelems_++, std::move(elem));
+        alloctr_::construct(this->alloc_, elems_ + nelems_++, std::move(elem));
     }
 
     /**
@@ -252,7 +273,7 @@ public:
             ResizeCapacity_(total_nelems);
 
         for (size_t i{nelems_}; auto &elem : vector)
-            alloctr_::construct(alloc_, elems_ + i++, elem);
+            alloctr_::construct(this->alloc_, elems_ + i++, elem);
 
         nelems_ = total_nelems;
     }
@@ -271,7 +292,7 @@ public:
             ResizeCapacity_(total_nelems);
 
         for (size_t i{nelems_}; auto &elem : vector)
-            alloctr_::construct(alloc_, elems_ + i++, std::move(elem));
+            alloctr_::construct(this->alloc_, elems_ + i++, std::move(elem));
 
         nelems_ = total_nelems;
     }
@@ -298,7 +319,7 @@ public:
         --nelems_;
 
         if constexpr (!std::is_trivially_destructible<T>::value)
-            alloctr_::destroy(alloc_, elems_ + nelems_);
+            alloctr_::destroy(this->alloc_, elems_ + nelems_);
     }
 
     /**
@@ -463,8 +484,9 @@ public:
                 {
                     if constexpr (!std::is_trivially_destructible_v<T>)
                         // Need to destroy them first
-                        alloctr_::destroy(alloc_, elems_ + elem_i);
-                    alloctr_::construct(alloc_, elems_ + elem_i, rhs[elem_i]);
+                        alloctr_::destroy(this->alloc_, elems_ + elem_i);
+                    alloctr_::construct(
+                      this->alloc_, elems_ + elem_i, rhs[elem_i]);
                 }
 
                 ++elem_i;
@@ -474,7 +496,7 @@ public:
             //   so we just construct over them.
             while (elem_i < rhs_sz)
             {
-                alloctr_::construct(alloc_, elems_ + elem_i, rhs[elem_i]);
+                alloctr_::construct(this->alloc_, elems_ + elem_i, rhs[elem_i]);
                 ++elem_i;
             }
         }
@@ -484,7 +506,7 @@ public:
             ResizeCapacity_(rhs.Size());
 
             for (size_t i{nelems_}; const auto &elem : rhs)
-                alloctr_::construct(alloc_, elems_ + i++, elem);
+                alloctr_::construct(this->alloc_, elems_ + i++, elem);
         }
 
         nelems_ = rhs.nelems_;
@@ -517,9 +539,9 @@ public:
                 {
                     if constexpr (!std::is_trivially_destructible_v<T>)
                         // Need to destroy them first
-                        alloctr_::destroy(alloc_, elems_ + elem_i);
+                        alloctr_::destroy(this->alloc_, elems_ + elem_i);
                     alloctr_::construct(
-                      alloc_, elems_ + elem_i, std::move(rhs[elem_i]));
+                      this->alloc_, elems_ + elem_i, std::move(rhs[elem_i]));
                 }
 
                 ++elem_i;
@@ -530,7 +552,7 @@ public:
             while (elem_i < rhs_sz)
             {
                 alloctr_::construct(
-                  alloc_, elems_ + elem_i, std::move(rhs[elem_i]));
+                  this->alloc_, elems_ + elem_i, std::move(rhs[elem_i]));
                 ++elem_i;
             }
         }
@@ -540,7 +562,8 @@ public:
             ResizeCapacity_(rhs.Size());
 
             for (size_t i{nelems_}; auto &elem : rhs)
-                alloctr_::construct(alloc_, elems_ + i++, std::move(elem));
+                alloctr_::construct(
+                  this->alloc_, elems_ + i++, std::move(elem));
         }
 
         nelems_ = rhs.nelems_;
@@ -633,7 +656,7 @@ private:
         for (auto *end_ptr{elems_ + nelems_}, *elem_ptr{elems_};
              elem_ptr < end_ptr;
              ++elem_ptr)
-            alloctr_::destroy(alloc_, elem_ptr);
+            alloctr_::destroy(this->alloc_, elem_ptr);
 
         nelems_ = 0;
     }
@@ -651,7 +674,7 @@ private:
             nelems_ = 0;
 
         if (elems_)
-            alloctr_::deallocate(alloc_, elems_, capacity_);
+            alloctr_::deallocate(this->alloc_, elems_, capacity_);
         capacity_ = 0;
     }
 
@@ -673,13 +696,14 @@ private:
 
         capacity_ = sz;
         nelems_   = std::min(old.nelems_, capacity_);
-        elems_    = alloctr_::allocate(alloc_, capacity_);
+        elems_    = alloctr_::allocate(this->alloc_, capacity_);
 
         if constexpr (std::is_trivially_copyable_v<T>)
             std::copy_n(old.begin(), nelems_, elems_);
         else
             for (size_t i{}; i < nelems_; ++i)
-                alloctr_::construct(alloc_, elems_ + i, std::move(old[i]));
+                alloctr_::construct(
+                  this->alloc_, elems_ + i, std::move(old[i]));
     }
 
     /**
@@ -755,13 +779,6 @@ private:
      */
     float growth_factor{1.5}; // Or, more precisely, 1.61803 (phi)
 };
-
-//                               //
-// Static members initialization //
-//                               //
-
-template <typename T, typename Allocator>
-Allocator Vector<T, Allocator>::alloc_{};
 
 //                          //
 // Other function overloads //
