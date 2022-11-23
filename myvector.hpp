@@ -239,7 +239,7 @@ public:
      * @param elem Element
      */
 
-    void constexpr PushBack(const T &elem) requires std::copy_constructible<T>
+    void constexpr push_back(const T &elem) requires std::copy_constructible<T>
     {
         GrowByFactorIfNeeded_();
 
@@ -252,7 +252,7 @@ public:
      *
      * @param elem Element
      */
-    void constexpr PushBack(T &&elem) requires std::move_constructible<T>
+    void constexpr push_back(T &&elem) requires std::move_constructible<T>
     {
         GrowByFactorIfNeeded_();
 
@@ -264,7 +264,7 @@ public:
      *
      * @param vector Vector to be copied from
      */
-    void constexpr PushBack(
+    void constexpr push_back(
       const Vector<T> &vector) requires std::copy_constructible<T>
     {
         size_t total_nelems{nelems_ + vector.Size()};
@@ -283,7 +283,7 @@ public:
      *
      * @param vector Vector to be moved from
      */
-    void constexpr PushBack(
+    void constexpr push_back(
       Vector<T> &&vector) requires std::move_constructible<T>
     {
         size_t total_nelems{nelems_ + vector.Size()};
@@ -306,7 +306,7 @@ public:
     template <typename... Args>
     void constexpr EmplaceBack(Args &&...args)
     {
-        PushBack(T(std::forward<Args>(args)...));
+        push_back(T(std::forward<Args>(args)...));
     }
 
     /**
@@ -608,16 +608,16 @@ public:
 
     /**
      * @brief Appends to the Vector.
-     *        Wraps around PushBack().
+     *        Wraps around push_back().
      *
      * @tparam RhsT Type of the argument
-     * @param elem Argument given to PushBack
+     * @param elem Argument given to push_back
      * @return Reference to the Vector
      */
     template <typename RhsT>
     Vector<T> constexpr &operator+=(const RhsT &elem)
     {
-        PushBack(elem);
+        push_back(elem);
 
         return *this;
     }
