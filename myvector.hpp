@@ -79,7 +79,7 @@ struct _VectorBase<T, std::allocator<T>>
     static inline std::allocator<T> alloc_;
 };
 
-/// @endcond INTERNAL
+/// @endcond
 
 /**
  * @brief A vector template
