@@ -20,7 +20,7 @@
  * @author Luiz Fernando F. G. Valle
  * @brief Implements a vector template.
  *
- * @copyright Copyright © 2021–2022 Luiz Fernando F. G. Valle
+ * @copyright Copyright © 2021–2023 Luiz Fernando F. G. Valle
  */
 
 #ifndef MYVECTOR_HPP
@@ -60,14 +60,14 @@ concept OstreamPrintable = requires(T obj, std::ostream ostream)
  * Uses an allocator per instance unless the Allocator is std::allocator<T>
  */
 template <typename T, typename Allocator>
-struct _VectorBase
+struct VectorBase
 {
     Allocator alloc_;
 };
 
-/// _VectorBase specialization that uses a static allocator
+/// VectorBase specialization that uses a static allocator
 template <typename T>
-struct _VectorBase<T, std::allocator<T>>
+struct VectorBase<T, std::allocator<T>>
 {
     static inline std::allocator<T> alloc_;
 };
@@ -80,7 +80,7 @@ struct _VectorBase<T, std::allocator<T>>
  * @tparam T Stored type
  */
 template <typename T, typename Allocator = std::allocator<T>>
-class Vector : _VectorBase<T, Allocator>
+class Vector : VectorBase<T, Allocator>
 {
     static_assert(std::is_same<T, typename Allocator::value_type>::value,
                   "Allocator must have T as its value_type");
