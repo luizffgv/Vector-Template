@@ -620,8 +620,6 @@ private:
     /**
      * @brief Destroys all elements in the Vector.
      *        Disabled if T is trivially destructible.
-     *
-     * @tparam Ret Return type, shouldn't be manually specified.
      */
     void constexpr destroy_elems_()
         requires(!std::is_trivially_destructible_v<T>)
