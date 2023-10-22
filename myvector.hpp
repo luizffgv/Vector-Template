@@ -57,7 +57,8 @@ concept OstreamPrintable = requires(T obj, std::ostream ostream)
 /**
  * @brief Vector base template
  *
- * Uses an allocator per instance unless the Allocator is std::allocator<T>
+ * Uses an allocator per instance unless the Allocator is std::allocator<T>, as
+ * std::allocator<T> is guaranteed to be stateless.
  */
 template <typename T, typename Allocator>
 struct VectorBase
