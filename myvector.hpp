@@ -624,7 +624,7 @@ private:
      * @tparam Ret Return type, shouldn't be manually specified.
      */
     void constexpr destroy_elems_()
-        requires std::is_trivially_destructible_v<T>
+        requires(!std::is_trivially_destructible_v<T>)
     {
         for (auto *end_ptr{elems_ + nelems_}, *elem_ptr{elems_};
              elem_ptr < end_ptr;
