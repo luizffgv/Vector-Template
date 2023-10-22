@@ -198,7 +198,7 @@ public:
     }
 
     /// Destroys the Vector object
-    constexpr ~Vector() { DeallocateElems_(); }
+    constexpr ~Vector() { deallocate_elems_(); }
 
     //                        //
     // Manipulation functions //
@@ -213,7 +213,7 @@ public:
 
     void constexpr push_back(const T &elem) requires std::copy_constructible<T>
     {
-        GrowByFactorIfNeeded_();
+        grow_by_factor_if_needed_();
 
         alloctr_::construct(this->alloc_, elems_ + nelems_++, elem);
     }
@@ -226,7 +226,7 @@ public:
      */
     void constexpr push_back(T &&elem) requires std::move_constructible<T>
     {
-        GrowByFactorIfNeeded_();
+        grow_by_factor_if_needed_();
 
         alloctr_::construct(this->alloc_, elems_ + nelems_++, std::move(elem));
     }
@@ -239,10 +239,10 @@ public:
     void constexpr push_back(
       const Vector &vector) requires std::copy_constructible<T>
     {
-        size_t total_nelems{nelems_ + vector.Size()};
+        size_t total_nelems{nelems_ + vector.size()};
 
         if (capacity_ < total_nelems)
-            ResizeCapacity_(total_nelems);
+            resize_capacity_(total_nelems);
 
         for (size_t i{nelems_}; auto &elem : vector)
             alloctr_::construct(this->alloc_, elems_ + i++, elem);
@@ -258,10 +258,10 @@ public:
     void constexpr push_back(
       Vector &&vector) requires std::move_constructible<T>
     {
-        size_t total_nelems{nelems_ + vector.Size()};
+        size_t total_nelems{nelems_ + vector.size()};
 
         if (capacity_ < total_nelems)
-            ResizeCapacity_(total_nelems);
+            resize_capacity_(total_nelems);
 
         for (size_t i{nelems_}; auto &elem : vector)
             alloctr_::construct(this->alloc_, elems_ + i++, std::move(elem));
@@ -276,7 +276,7 @@ public:
      * @param args Constructor arguments
      */
     template <typename... Args>
-    void constexpr EmplaceBack(Args &&...args)
+    void constexpr emplace_back(Args &&...args)
     {
         push_back(T(std::forward<Args>(args)...));
     }
@@ -286,7 +286,7 @@ public:
      *        This function should not be called with an empty Vector, checking
      *          is the caller's responsibility.
      */
-    void constexpr PopBack()
+    void constexpr pop_back()
     {
         --nelems_;
 
@@ -299,10 +299,10 @@ public:
      *          if they are not trivially destructible.
      *        Does not free allocated memory.
      */
-    void constexpr Clear()
+    void constexpr clear()
     {
         if constexpr (!std::is_trivially_destructible_v<T>)
-            DestroyElems_();
+            destroy_elems_();
 
         nelems_ = 0;
     }
@@ -319,20 +319,20 @@ public:
      *
      * @param sz Desired number of elements to be reserved in memory
      */
-    void constexpr Reserve(size_t sz)
+    void constexpr reserve(size_t sz)
     {
         if (sz > capacity_)
-            ResizeCapacity_(sz);
+            resize_capacity_(sz);
     }
 
     /**
      * @brief Shrinks the capacity to fit exactly the number of elements in the
      *          Vector. Does nothing if capacity_ is already at the minimum.
      */
-    void constexpr ShrinkToFit()
+    void constexpr shrink_to_fit()
     {
         if (capacity_ != nelems_)
-            ResizeCapacity_(nelems_);
+            resize_capacity_(nelems_);
     }
 
     //                       //
@@ -344,7 +344,7 @@ public:
      *
      * @return Number of elements
      */
-    size_t constexpr Size() const { return nelems_; }
+    size_t constexpr size() const { return nelems_; }
 
     /**
      * @brief Checks if the Vector is empty
@@ -352,14 +352,14 @@ public:
      * @return true Vector is empty
      * @return false Vector is not empty
      */
-    bool constexpr IsEmpty() const { return !nelems_; }
+    bool constexpr is_empty() const { return !nelems_; }
 
     /**
      * @brief Returns the Vector's current total capacity.
      *
      * @return Current capacity
      */
-    size_t constexpr Capacity() const { return capacity_; }
+    size_t constexpr capacity() const { return capacity_; }
 
     /**
      * @brief Returns the Vector's growth factor.
@@ -367,9 +367,9 @@ public:
      *
      * @return Vector's growth factor
      */
-    [[deprecated]] float constexpr GrowthFactor() const
+    [[deprecated]] float constexpr growth_factor() const
     {
-        return growth_factor;
+        return growth_factor_;
     }
 
     //                  //
@@ -383,10 +383,10 @@ public:
      *
      * @param factor New growth factor
      */
-    [[deprecated]] void constexpr SetGrowthFactor(float factor)
+    [[deprecated]] void constexpr set_growth_factor(float factor)
     {
         if (factor > 1.f)
-            growth_factor = factor;
+            growth_factor_ = factor;
     }
 
     //                    //
@@ -440,10 +440,10 @@ public:
     Vector constexpr &
     operator=(const Vector &rhs) requires std::copy_constructible<T>
     {
-        if (capacity_ >= rhs.Size())
+        if (capacity_ >= rhs.size())
         { // We can reuse the current Vector's memory
-            size_t rhs_sz(rhs.Size());
-            size_t min_sz{std::min(Size(), rhs_sz)};
+            size_t rhs_sz(rhs.size());
+            size_t min_sz{std::min(size(), rhs_sz)};
             size_t elem_i{0};
 
             // For all elements already in the original Vector
@@ -474,8 +474,8 @@ public:
         }
         else // Current memory is too small, needs reallocation
         {
-            DeallocateElems_();
-            ResizeCapacity_(rhs.Size());
+            deallocate_elems_();
+            resize_capacity_(rhs.size());
 
             for (size_t i{nelems_}; const auto &elem : rhs)
                 alloctr_::construct(this->alloc_, elems_ + i++, elem);
@@ -495,10 +495,10 @@ public:
     Vector constexpr &
     operator=(Vector &&rhs) requires std::move_constructible<T>
     {
-        if (capacity_ >= rhs.Size())
+        if (capacity_ >= rhs.size())
         { // We can reuse the current Vector's memory
-            size_t rhs_sz(rhs.Size());
-            size_t min_sz{std::min(Size(), rhs_sz)};
+            size_t rhs_sz(rhs.size());
+            size_t min_sz{std::min(size(), rhs_sz)};
             size_t elem_i{0};
 
             // For all elements already in the original Vector
@@ -530,8 +530,8 @@ public:
         }
         else // Current memory is too small, needs reallocation
         {
-            DeallocateElems_();
-            ResizeCapacity_(rhs.Size());
+            deallocate_elems_();
+            resize_capacity_(rhs.size());
 
             for (size_t i{nelems_}; auto &elem : rhs)
                 alloctr_::construct(
@@ -540,7 +540,7 @@ public:
 
         nelems_ = rhs.nelems_;
 
-        rhs.Clear();
+        rhs.clear();
 
         return *this;
     }
@@ -623,7 +623,7 @@ private:
      *
      * @tparam Ret Return type, shouldn't be manually specified.
      */
-    void constexpr DestroyElems_() requires std::is_trivially_destructible_v<T>
+    void constexpr destroy_elems_() requires std::is_trivially_destructible_v<T>
     {
         for (auto *end_ptr{elems_ + nelems_}, *elem_ptr{elems_};
              elem_ptr < end_ptr;
@@ -638,10 +638,10 @@ private:
      *        Also calls destructor for each element if not trivially
      *        destructible.
      */
-    void constexpr DeallocateElems_()
+    void constexpr deallocate_elems_()
     {
         if constexpr (!std::is_trivially_destructible_v<T>)
-            DestroyElems_();
+            destroy_elems_();
         else
             nelems_ = 0;
 
@@ -661,7 +661,7 @@ private:
      *
      * @param sz Desired size
      */
-    void constexpr ResizeCapacity_(
+    void constexpr resize_capacity_(
       size_t sz) requires std::move_constructible<T>
     {
         Vector old{std::move(*this)};
@@ -679,10 +679,10 @@ private:
     }
 
     /**
-     * @brief Grows the Vector's capacity multiplying it by growth_factor.
-     *        Wraps around ResizeCapacity_.
+     * @brief Grows the Vector's capacity multiplying it by growth_factor_.
+     *        Wraps around resize_capacity_.
      */
-    void constexpr GrowByFactor_()
+    void constexpr grow_by_factor_()
     {
         // clang-format off
         auto constexpr ceil{[](auto const &v) constexpr
@@ -692,18 +692,18 @@ private:
             return static_cast<size_t>(v) == v ? v : static_cast<size_t>(v) + 1;
         }};
         //clang-format on
-        ResizeCapacity_(capacity_ ? ceil(capacity_ * growth_factor)
+        resize_capacity_(capacity_ ? ceil(capacity_ * growth_factor_)
                                   : 1);
     }
 
     /**
      * @brief Grows the Vector's capacity if full.
-     *        Wraps around GrowByFactor_.
+     *        Wraps around grow_by_factor_.
      */
-    void constexpr GrowByFactorIfNeeded_()
+    void constexpr grow_by_factor_if_needed_()
     {
-        if (IsFullCapacity_())
-            GrowByFactor_();
+        if (is_full_capacity_())
+            grow_by_factor_();
     }
 
     //                               //
@@ -716,7 +716,7 @@ private:
      * @return true Vector is using all its capacity
      * @return false Vector is not using all its capacity
      */
-    bool constexpr IsFullCapacity_() const { return nelems_ >= capacity_; }
+    bool constexpr is_full_capacity_() const { return nelems_ >= capacity_; }
 
     //                          //
     // Private member variables //
@@ -732,7 +732,7 @@ private:
     pointer elems_{nullptr};
 
     /*
-        Unsure if growth_factor should be static. I think having it static
+        Unsure if growth_factor_ should be static. I think having it static
           is probably best, but I'll see from experience.
         Its setter and getters are marked as deprecated becaue of their possible
           future removal.
@@ -743,7 +743,7 @@ private:
      *          this value when necessary.
      *        Must be greater than 1
      */
-    float growth_factor{1.5}; // Or, more precisely, 1.61803 (phi)
+    float growth_factor_{1.5}; // Or, more precisely, 1.61803 (phi)
 };
 
 //                          //
@@ -772,10 +772,10 @@ std::ostream &operator<<(std::ostream &lhs, Vector<T, Allocator> const &rhs)
     {
         lhs << '[';
 
-        if (rhs.Size())
+        if (rhs.size())
             lhs << rhs[0];
 
-        for (size_t elem_i{1}; elem_i < rhs.Size(); ++elem_i)
+        for (size_t elem_i{1}; elem_i < rhs.size(); ++elem_i)
             lhs << ", " << rhs[elem_i];
 
         lhs << ']';
