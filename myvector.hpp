@@ -398,7 +398,14 @@ public:
      *
      * @return Pointer to the first element
      */
-    pointer constexpr begin() const { return elems_; }
+    pointer constexpr begin() { return elems_; }
+
+    /**
+     * @brief Return an iterator to constant first element.
+     *
+     * @return Pointer to the constant first element
+     */
+    const_pointer constexpr begin() const { return elems_; }
 
     /**
      * @brief Return an iterator to constant first element.
@@ -412,7 +419,14 @@ public:
      *
      * @return Pointer to the one-past-last element
      */
-    pointer constexpr end() const { return elems_ + nelems_; }
+    pointer constexpr end() { return elems_ + nelems_; }
+
+    /**
+     * @brief Return an iterator to constant one-past-last element.
+     *
+     * @return Pointer to the constant one-past-last element
+     */
+    const_pointer constexpr end() const { return elems_ + nelems_; }
 
     /**
      * @brief Return an iterator to constant one-past-last element.
