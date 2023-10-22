@@ -236,7 +236,7 @@ public:
      * @param vector Vector to be copied from
      */
     void constexpr push_back(
-      const Vector<T> &vector) requires std::copy_constructible<T>
+      const Vector &vector) requires std::copy_constructible<T>
     {
         size_t total_nelems{nelems_ + vector.Size()};
 
@@ -255,7 +255,7 @@ public:
      * @param vector Vector to be moved from
      */
     void constexpr push_back(
-      Vector<T> &&vector) requires std::move_constructible<T>
+      Vector &&vector) requires std::move_constructible<T>
     {
         size_t total_nelems{nelems_ + vector.Size()};
 
@@ -436,8 +436,8 @@ public:
      * @param rhs Vector to be copied from
      * @return Reference to left-hand Vector
      */
-    Vector<T> constexpr &
-    operator=(const Vector<T> &rhs) requires std::copy_constructible<T>
+    Vector constexpr &
+    operator=(const Vector &rhs) requires std::copy_constructible<T>
     {
         if (capacity_ >= rhs.Size())
         { // We can reuse the current Vector's memory
@@ -491,8 +491,8 @@ public:
      * @param rhs Vector to be moved from
      * @return Reference to left-hand Vector
      */
-    Vector<T> constexpr &
-    operator=(Vector<T> &&rhs) requires std::move_constructible<T>
+    Vector constexpr &
+    operator=(Vector &&rhs) requires std::move_constructible<T>
     {
         if (capacity_ >= rhs.Size())
         { // We can reuse the current Vector's memory
@@ -566,7 +566,7 @@ public:
      * @param rhs Vector to compare with
      * @return Spaceship operation result
      */
-    auto constexpr operator<=>(const Vector<T> &rhs) const
+    auto constexpr operator<=>(const Vector &rhs) const
     {
         return nelems_ <=> rhs.nelems_;
     }
@@ -586,7 +586,7 @@ public:
      * @return Reference to the Vector
      */
     template <typename RhsT>
-    Vector<T> constexpr &operator+=(const RhsT &elem)
+    Vector constexpr &operator+=(const RhsT &elem)
     {
         push_back(elem);
 
@@ -599,12 +599,12 @@ public:
      *
      * @tparam RhsT Type of the argument
      * @param elem Argument given to operator+=()
-     * @return Vector<T> Resulting Vector
+     * @return Vector Resulting Vector
      */
     template <typename RhsT>
-    Vector<T> constexpr operator+(const RhsT &elem) const
+    Vector constexpr operator+(const RhsT &elem) const
     {
-        Vector<T> ret{*this};
+        Vector ret{*this};
 
         ret += elem;
 
