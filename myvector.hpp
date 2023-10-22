@@ -759,7 +759,7 @@ private:
  * @return std::ostream& Reference to lhs std::ostream
  */
 template <typename T, typename Allocator>
-std::ostream &operator<<(std::ostream &lhs, Vector<T, Allocator> &rhs)
+std::ostream &operator<<(std::ostream &lhs, Vector<T, Allocator> const &rhs)
 {
     static_assert(concepts::OstreamPrintable<T>,
                   "Can't output Vector to ostream with operator << "
