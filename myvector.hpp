@@ -45,10 +45,8 @@ namespace concepts
  * @tparam T type
  */
 template <typename T>
-concept OstreamPrintable = requires(T obj, std::ostream ostream)
-{
-    ostream << obj;
-};
+concept OstreamPrintable
+  = requires(T obj, std::ostream ostream) { ostream << obj; };
 
 } // namespace concepts
 
@@ -155,10 +153,10 @@ public:
           nelems_{list.size()},
           elems_{alloctr_::allocate(this->alloc_, capacity_)}
     {
-        static_assert(
-          std::is_copy_constructible_v<T> || std::is_trivially_copyable_v<T>,
-          "Vector initializer list constructor needs T to be copy"
-          " constructible or trivially copyable");
+        static_assert(std::is_copy_constructible_v<T>
+                        || std::is_trivially_copyable_v<T>,
+                      "Vector initializer list constructor needs T to be copy"
+                      " constructible or trivially copyable");
 
         if constexpr (std::is_trivially_copyable_v<T>)
             std::copy(list.begin(), list.end(), elems_);
@@ -211,7 +209,8 @@ public:
      * @param elem Element
      */
 
-    void constexpr push_back(const T &elem) requires std::copy_constructible<T>
+    void constexpr push_back(const T &elem)
+        requires std::copy_constructible<T>
     {
         grow_by_factor_if_needed_();
 
@@ -224,7 +223,8 @@ public:
      *
      * @param elem Element
      */
-    void constexpr push_back(T &&elem) requires std::move_constructible<T>
+    void constexpr push_back(T &&elem)
+        requires std::move_constructible<T>
     {
         grow_by_factor_if_needed_();
 
@@ -236,8 +236,8 @@ public:
      *
      * @param vector Vector to be copied from
      */
-    void constexpr push_back(
-      const Vector &vector) requires std::copy_constructible<T>
+    void constexpr push_back(const Vector &vector)
+        requires std::copy_constructible<T>
     {
         size_t total_nelems{nelems_ + vector.size()};
 
@@ -255,8 +255,8 @@ public:
      *
      * @param vector Vector to be moved from
      */
-    void constexpr push_back(
-      Vector &&vector) requires std::move_constructible<T>
+    void constexpr push_back(Vector &&vector)
+        requires std::move_constructible<T>
     {
         size_t total_nelems{nelems_ + vector.size()};
 
@@ -437,8 +437,8 @@ public:
      * @param rhs Vector to be copied from
      * @return Reference to left-hand Vector
      */
-    Vector constexpr &
-    operator=(const Vector &rhs) requires std::copy_constructible<T>
+    Vector constexpr &operator=(const Vector &rhs)
+        requires std::copy_constructible<T>
     {
         if (capacity_ >= rhs.size())
         { // We can reuse the current Vector's memory
@@ -492,8 +492,8 @@ public:
      * @param rhs Vector to be moved from
      * @return Reference to left-hand Vector
      */
-    Vector constexpr &
-    operator=(Vector &&rhs) requires std::move_constructible<T>
+    Vector constexpr &operator=(Vector &&rhs)
+        requires std::move_constructible<T>
     {
         if (capacity_ >= rhs.size())
         { // We can reuse the current Vector's memory
@@ -623,7 +623,8 @@ private:
      *
      * @tparam Ret Return type, shouldn't be manually specified.
      */
-    void constexpr destroy_elems_() requires std::is_trivially_destructible_v<T>
+    void constexpr destroy_elems_()
+        requires std::is_trivially_destructible_v<T>
     {
         for (auto *end_ptr{elems_ + nelems_}, *elem_ptr{elems_};
              elem_ptr < end_ptr;
@@ -661,8 +662,8 @@ private:
      *
      * @param sz Desired size
      */
-    void constexpr resize_capacity_(
-      size_t sz) requires std::move_constructible<T>
+    void constexpr resize_capacity_(size_t sz)
+        requires std::move_constructible<T>
     {
         Vector old{std::move(*this)};
 
